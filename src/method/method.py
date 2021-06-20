@@ -16,7 +16,7 @@ def get_data(query,res_format):
     
 
 key = ['http://dbpedia.org/ontology/','http://dbpedia.org/resource/','http://dbpedia.org/property/']
-value_type_skip = ['literal'] #这种情况下多为描述
+value_type_skip = ['literal','typed-literal'] #这种情况下前者多为各种语言描述，后者多为时间数字等；这两者都对于度计算时，没有意义
 
 class get_by_degree:
     '''
