@@ -73,7 +73,7 @@ class get_by_degree:
                     continue
                 if i['value']['type'] == 'uri':
                     v = i['value']['value'].split('/')[-1]
-                elif if i['value']['type'] == 'literal' and i['value']['xml:lang'] == en and i['value']['value']!= "": #注意有为空的情况
+                elif  i['value']['type'] == 'literal' and i['value']['xml:lang'] == en and i['value']['value']!= "": #注意有为空的情况
                     v = i['value']['value']
                 else:
                     continue
