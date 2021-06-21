@@ -16,7 +16,7 @@ def get_data(query,res_format):
     
 
 key = ['http://dbpedia.org/ontology/','http://dbpedia.org/resource/','http://dbpedia.org/property/']
-value_type_skip = ['literal','typed-literal'] #这种情况下前者多为各种语言描述，后者多为时间数字等；这两者都对于度计算时，没有意义
+value_type_skip = ['typed-literal'] #多为时间数字等；这两者都对于度计算时，没有意义;但实际上他们可以提供非常丰富的语料信息，【本质问题感觉是没有考虑边属性】
 
 class get_by_degree:
     '''
@@ -73,8 +73,10 @@ class get_by_degree:
                     continue
                 if i['value']['type'] == 'uri':
                     v = i['value']['value'].split('/')[-1]
-                else:
+                elif if i['value']['type'] == 'literal' and i['value']['xml:lang'] == en and i['value']['value']!= "": #注意有为空的情况
                     v = i['value']['value']
+                else:
+                    continue
                 l = i['property']['value'].split('/')[-1]#查看过其返回类型都是uri
                 if l.startswith('wiki'): #dbo中也有wiki
                     continue
