@@ -34,7 +34,8 @@ class get_by_degree:
         
     def _get_query(self,center_word,is_for_expand):
         if not is_for_expand: #is_for_expand == False
-            self.query = f'''
+            self.query =[ 
+                f'''
                 prefix dbo:<http://dbpedia.org/ontology/> 
                 prefix dbr:<http://dbpedia.org/resource/> 
                 SELECT ?property ?value 
@@ -42,8 +43,19 @@ class get_by_degree:
                 dbr:{self.center_word} ?property  ?value 
                 }}
                 '''
+                ,
+                f'''
+                prefix dbo:<http://dbpedia.org/ontology/> 
+                prefix dbr:<http://dbpedia.org/resource/> 
+                SELECT  ?value ?property
+                Where {{ 
+                 ?value ?property dbr:{self.center_word}
+                }}
+                '''
+            ]
+                
         else:
-            self.query = f'''
+            self.query = [f'''
         prefix dbo:<http://dbpedia.org/ontology/> 
         prefix dbr:<http://dbpedia.org/resource/> 
         SELECT COUNT(?label ) as ?num  
@@ -51,18 +63,25 @@ class get_by_degree:
         dbr:{center_word} ?label ?value
         }}
         '''
+           ,
+            f'''
+        prefix dbo:<http://dbpedia.org/ontology/> 
+        prefix dbr:<http://dbpedia.org/resource/> 
+        SELECT COUNT(?label ) as ?num  
+        Where{{ 
+        ?value ?label  dbr:{center_word}
+        }}
+        ''']
         
-    def _clen_data(self,data):
+    def _clean_data(self,data,as_subject=True):
         #这里不用 fliter而用遍历是因为返回值都为uri，还是要遍历取出string方便画图
         #只保留以key开头的边
         #且去除节点为value_type_skip的值的节点
         #最终保留在w中
         '''
         形式：
-        {
-        'label':'deathPlace',
-        'value': 'Cambridge'
-        }
+        [,,,]
+        只保存节点，边的属性可以在查出top_10后再添加
         '''
         w = []
         flag = True
@@ -80,27 +99,63 @@ class get_by_degree:
                 l = i['property']['value'].split('/')[-1]#查看过其返回类型都是uri
                 if l.startswith('wiki'): #dbo中也有wiki
                     continue
-                    
-                for j in w:
-                    if j == {'property':l,'value':v}: #dbo/dbr/dbp中也有可能重复的东西
-                        flag = True
-                        break
-                if flag:
+                if len(w)>0 and v in w: #若此时节点已经记录了
                     continue
-                w.append({'property':l,'value':v})
-            else:
-                continue
+                else:
+                    w.append(v)
+
+                
         return w
     
+    def _get_the_relationship(self,subject_,object_):
+        relationship = None
+        query = f'''
+                prefix dbo:<http://dbpedia.org/ontology/> 
+                prefix dbr:<http://dbpedia.org/resource/> 
+                SELECT ?property
+                Where {{ 
+                dbr:{subject_} ?property  dbr:{object_} 
+                }}
+                '''
+        
+        data = get_data(query,self.format)
+        if data == 0: #they don't have realtionship from this direction
+            return None
+        for i in data["results"]["bindings"]:
+            l = i['property']['value'].split('/')[-1]#查看过其返回类型都是uri
+            if l.startswith('wiki'): #dbo中也有wiki
+                continue
+            if relationship == None:
+                relationship = l
+            else:
+                relationship =relationship+ '/'+ l
+        
+        return relationship 
+    
     def _get_data(self):
+        print("=== run the get data process ===== ")
         self._get_query(self.center_word,False)
-        data = get_data(self.query,self.format)
+        data = get_data(self.query[0],self.format) # 作主语
         print(len(data))
+        print(f'[!] as the subject: num  = {len(data["results"]["bindings"])}')
+        #print(len(data))
         if self.escape:
-            w = self._clen_data(data)
+            w = self._clean_data(data)
         else:
             w = data["results"]["bindings"] #？感觉这个else没有写对，就算不跳过，也应该从uri中获得strig
-            
+        print(f'[!] as the subject after cleanning: num  = {len(w)}')
+        
+        data = get_data(self.query[1],self.format) # 作宾语
+        print(f'[!] as the object: num  = {len(data["results"]["bindings"])}')
+        if self.escape:
+            w_ = self._clean_data(data)
+        else:
+            w_ = data["results"]["bingdings"]#？感觉这个else没有写对，就算不跳过，也应该从uri中获得strig
+        print(f'[!] as the object after cleanning: num  = {len(w_)}')
+        
+        w = w + w_
+        w = list(set(w)) #去重
+        
         # call _get_the_top10_by_degree()
         w = self._get_the_topk_by_degree(w,self.top_k)
         print("the top 10:")
@@ -114,44 +169,38 @@ class get_by_degree:
         # ？是否要讲原center排除，避免出现有向环状的情况，即死循环
         
         #不进行clean_data的版本
-        for i in tqdm(range(len(words))):#对每一个结果查询其周围的度
-            self._get_query(words[i]['value'],True)
-            res = get_data(self.query,self.format)
+        w = []
+        for i in tqdm(range(len(words))):#对每一个结果查询其周围的度,出度（作主语）和入度（作宾语）
+            self._get_query(words[i],True)
+            res = get_data(self.query[0],self.format)#作主语
             if res != 0:
                 num =int(res["results"]["bindings"][0]["num"]["value"])
             else:
                 num = 0
-            words[i]['degree'] = num
+                
+            res = get_data(self.query[1],self.format)#作宾语
+            if res != 0:
+                num +=int(res["results"]["bindings"][0]["num"]["value"])
+            else:
+                num += 0
+            w.append({'value':words[i],'degree':num})
+        
         
         #进行clean_data在查询中做 filter，不要再遍历循环 
         #undo
         
-        print('len = ' +str(len(words)))
-        words = sorted(words,key=lambda w:w['degree'],reverse=True)
+
+        w = sorted(w,key=lambda k:k['degree'],reverse=True)[:10]
         
-        res =  []
-        total = 0
-        flag = True
-        for w in words: 
-            flag = True
-            if total == top_k: #一共就只加 10 个
-                break
-            total += 1
-            if len(words) == 0:
-                res.append({'property':w['property'],'value':w['value'],'degree':w['degree']})
-            else:
-                for r in res:
-                    if r['value'] == w['value']: #避免一个结点对应多种关系
-                        r['property'] = r['property'] +' / ' + w['property']
-                        flag = False
-                        total -= 1 #这种情况不算是增加结点
-                        break
-            if flag:
-                res.append({'property':w['property'],'value':w['value'],'degree':w['degree']})
-                    
-        print('top_k = ' +str(top_k))
-        print(' len = ' +str(len(res)))
-        return res
+        
+#         for r in rdf:
+#             relationship = _get_the_relationship(subject_=self.center_word,object_=r)
+#             res.append("subject":self.center_word,"property":relationship,"object":r)
+#             relationship = _get_the_relationship(subject_=r,object_=self.center_word) #采用手工交换
+#             res.append("subject":r,"property":relationship,"object":self.center_word)
+        
+        return w
+    
     def _add_to_graph(self,words):
         #由于添加点和边的时候都要添加属性，因此要分别添加，不能通过添边来间接添点
         #networkx的好处，重复添加结点会忽略
@@ -160,11 +209,23 @@ class get_by_degree:
         nodes.append((self.center_word,{'value':self.center_word}))
         for w in words:
             nodes.append((w['value'],{'value':w['value']}))
-            edges.append((self.center_word,w['value'],{'property':w['property']}))
+            
+            relationship = self._get_the_relationship(subject_=self.center_word,object_=w['value'])
+            if relationship != None:
+                edges.append((self.center_word,w['value'],{'property':relationship}))#center-> entity
+            else:    
+                relationship_ =self._get_the_relationship(subject_=w['value'],object_=self.center_word) 
+                if relationship_ != None:
+                    edges.append((w['value'],self.center_word,{'property':relationship_}))#entity->center
+                else:# relationship == None and relationship_ == None:
+                    print(f'[!] all none :{self.center_word} {w["value"]}')
+            print(edges[-1])
+            
         self.graph.add_nodes_from(nodes)
         self.graph.add_edges_from(edges)
     
     def _get_graph(self):
+        self._get_data()
         return self.graph
         
         
