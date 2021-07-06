@@ -11,7 +11,8 @@ def get_data(query,res_format):
         ret = sparql.query().convert()
         return ret
     except:
-        #print("there's somthing wrong!\n")
+        #deal_with_the_exception()
+        print("there's somthing wrong!\n")
         return 0
     
 
@@ -84,9 +85,7 @@ class get_by_degree:
         只保存节点，边的属性可以在查出top_10后再添加
         '''
         w = []
-        flag = True
         for i in data["results"]["bindings"]:
-            flag =False
             if i['property']['value'].startswith(key[0]) or i['property']['value'].startswith(key[1]) or i['property']['value'].startswith(key[2]):
                 if i['value']['type'] in value_type_skip:
                     continue
@@ -102,6 +101,9 @@ class get_by_degree:
                 if len(w)>0 and v in w: #若此时节点已经记录了
                     continue
                 else:
+                    if v == self.center_word:
+                        print(i)
+                        continue
                     w.append(v)
 
                 
@@ -136,22 +138,31 @@ class get_by_degree:
         print("=== run the get data process ===== ")
         self._get_query(self.center_word,False)
         data = get_data(self.query[0],self.format) # 作主语
-        print(len(data))
-        print(f'[!] as the subject: num  = {len(data["results"]["bindings"])}')
-        #print(len(data))
-        if self.escape:
-            w = self._clean_data(data)
+        if data == 0:
+            print(data)
+            w = [] 
         else:
-            w = data["results"]["bindings"] #？感觉这个else没有写对，就算不跳过，也应该从uri中获得strig
-        print(f'[!] as the subject after cleanning: num  = {len(w)}')
+            print(len(data))
+            print(f'[!] as the subject: num  = {len(data["results"]["bindings"])}')
+        #print(len(data))
+            if self.escape:
+                w = self._clean_data(data)
+            else:
+                w = data["results"]["bindings"] #？感觉这个else没有写对，就算不跳过，也应该从uri中获得strig
+            print(f'[!] as the subject after cleanning: num  = {len(w)}')
         
         data = get_data(self.query[1],self.format) # 作宾语
-        print(f'[!] as the object: num  = {len(data["results"]["bindings"])}')
-        if self.escape:
-            w_ = self._clean_data(data)
+        if data == 0:
+            print(f'[!] as the object: num  = {data}')
+            w_ = []
+                
         else:
-            w_ = data["results"]["bingdings"]#？感觉这个else没有写对，就算不跳过，也应该从uri中获得strig
-        print(f'[!] as the object after cleanning: num  = {len(w_)}')
+            print(f'[!] as the object: num  = {len(data["results"]["bindings"])}')
+            if self.escape:
+                w_ = self._clean_data(data)
+            else:
+                w_ = data["results"]["bingdings"]#？感觉这个else没有写对，就算不跳过，也应该从uri中获得strig
+            print(f'[!] as the object after cleanning: num  = {len(w_)}')
         
         w = w + w_
         w = list(set(w)) #去重
