@@ -174,6 +174,7 @@ class get_by_degree:
         
         #call add the res to self.graph
         self._add_to_graph(w)
+        return w
     
     def _get_the_topk_by_degree(self,words,top_k=10):
         #?在度的计算中是否需要进行 clean_data
