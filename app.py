@@ -117,5 +117,5 @@ def update_the_ego_graph(data,old_edges,old_nodes):
 
 
   
-
+app.title = 'DBpedia Visualization'
 app.run_server()
