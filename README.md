@@ -8,7 +8,7 @@ We want to try employ SNA measures to Knowledge Graph to help novice users to ex
 When novice users use DBpedia for querying, the information they really want is always overwhelmed by numerous query results. In this project, we want to leverage the Knowledge Graph of DBpedia to develop a graph-query tool that can help the end user to obtain relevant information w.r.t his request/input/query. We can give the users a subgraph where the concept/entity that students query for is center and it is surrounded by its most important concepts (like the top-5 or top-10, in terms of the Social Network Analysis measures).
 
 ## Process
-![Structure](.\png\structure.png)
+![Structure](png/structure.png)
 
 The above image shows what our developed system does after a user makes a query.
 
@@ -47,7 +47,7 @@ Our proposed method performs well in removing data bias and presenting as many d
 
 The following two figures show the different results obtained by the two methods above when Maxwell is the central node.
 
-![by_degree](templet\ego-graph\scientist\Einstein\Albert_Einstein_degree.jpg)
+![by_degree](templet/ego-graph/scientist/Einstein/Albert_Einstein_degree.jpg)
 
 ```json
 {
@@ -66,7 +66,7 @@ The following two figures show the different results obtained by the two methods
 ```
 We can see the method we propose shows more more dimensions while considering scalability(degree) and diversity(relationships).
 
-Due to the some reasons of the second methods, the codes we release uses the degree as ranking evaluation, but you can try the **beta version** [here](.\beta\cluster_with_th_1_topk.ipynb) with [Colab](https://colab.research.google.com/notebooks/intro.ipynb#recent=true).
+Due to the [some reasons](https://github.com/dbpedia/social-knowledge-graph#difficulty) of the second methods, the codes we release uses the degree as ranking evaluation, but you can try the **beta version** [here](/beta/cluster_with_th_1_topk.ipynb) with [Colab](https://colab.research.google.com/notebooks/intro.ipynb#recent=true).
 
 **Attention**: It should be noted that even though we choose the seemingly simplest method of degree expansion, we have read a lot of literature and experimented with it. Several common expansion methods can be seen in this [paper](https://people.cs.aau.dk/~matteo/pdf/SIGWEB-2020-kgexp.pdf).
 
