@@ -40,8 +40,7 @@ We try to leverage 2 kinds of methods to calculate the importance of entities. O
   - Attenuation
     - Different levels of decay based on normalized ranking
   - Ranking
-    - Rank 
-      - Sort all nodes and output them
+    - Sort all nodes and output them
 
 Our proposed method performs well in removing data bias and presenting as many dimensional attributes as possible.
 
