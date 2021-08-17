@@ -63,7 +63,7 @@ The following two figures show the different results obtained by the two methods
     "Alfred Kleiner": "doctoral advisor"
     }
 ```
-We can see the method we propose shows more more dimensions while considering scalability(degree) and diversity(relationships).
+We can see the method we propose shows more dimensions while considering scalability(degree) and diversity(relationships).
 
 Due to the [some reasons](https://github.com/dbpedia/social-knowledge-graph#difficulty) of the second methods, the codes we release uses the degree as ranking evaluation, but you can try the **beta version** [here](/beta/cluster_with_th_1_topk.ipynb) with [Colab](https://colab.research.google.com/notebooks/intro.ipynb#recent=true).
 
@@ -74,9 +74,18 @@ The reason we didn't put the code on the server was that the cloud service I had
 
 The ideal way is download the data to convert the network requests to local queries, and then store the results getting by the two methods in advance which could be  efficient and stable for users.If so, we can actually use [a more fetching way](https://github.com/plotly/dash-cytoscape/blob/master/demos/usage-elements-extra.py) of expanding.
 
+Reasons why not apply for the new method in the final version:
+1. we can't download the data and compared to "degree method", it will cost more time for calculation.
+2. More importantly, the relationships in the DBpedia are not always words.It requires to build a word dictionary manually to make the word similarity calculations successful.
+> e.g  influencedBy -> influence by
+
 ## Dashboard
 Users can click on the nodes in graph to do the further explorations.
 ![dash](png/dash.png)
+### Features
+- `input`：You should enter the name of an entity as input,e.g `James Clerk Maxwell` or `Albert Einstein`
+- `hover`: You can hover over the edges to see the specific relationships.
+- `click`: You can click an entity to expand and it will return the top-10 entites around the clicked entity.
 
 ## Development Life Cycle
 Tools and Frameworks used for developing this system:
