@@ -70,10 +70,6 @@ Due to the [some reasons](https://github.com/dbpedia/social-knowledge-graph#diff
 **Attention**: It should be noted that even though we choose the seemingly simplest method of degree expansion, we have read a lot of literature and experimented with it. Several common expansion methods can be seen in this [paper](https://people.cs.aau.dk/~matteo/pdf/SIGWEB-2020-kgexp.pdf).
 
 ## Difficulty
-The reason we didn't put the code on the server was that the cloud service I had purchased required a vpn connection to access the public endpoint, and I kept getting [errors](https://forum.dbpedia.org/t/chapter-deployment-help-thread/950) when trying to download the data down, which turns out to be the storage problems.
-
-The ideal way is download the data to convert the network requests to local queries, and then store the results getting by the two methods in advance which could be  efficient and stable for users.If so, we can actually use [a more fetching way](https://github.com/plotly/dash-cytoscape/blob/master/demos/usage-elements-extra.py) of expanding.
-
 Reasons why not apply for the new method in the final version:
 1. we can't download the data and compared to "degree method", it will cost more time for calculation.
 2. More importantly, the relationships in the DBpedia are not always words.It requires to build a word dictionary manually to make the word similarity calculations successful.
@@ -100,3 +96,10 @@ git clone https://github.com/dbpedia/social-knowledge-graph.git
 pip install -r requirements.txt
 python app.py
 ```
+
+## Future Work
+### Put service on the cloud
+The reason why we didn't put the code on the server was that the cloud service I had purchased required a vpn connection to access the public endpoint, and I kept getting [errors](https://forum.dbpedia.org/t/chapter-deployment-help-thread/950) when trying to download the data, which turned out to be the storage problems.
+
+### Convert the network requests to local queries
+The ideal way is download the data to convert the network requests to local queries, and then store the results getting by the two methods in advance which could be  efficient and stable for users.If so, we can actually use [a more fetching way](https://github.com/plotly/dash-cytoscape/blob/master/demos/usage-elements-extra.py) of expanding.
